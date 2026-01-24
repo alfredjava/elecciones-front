@@ -1,38 +1,59 @@
 import { useState } from 'react';
-import { registrarEstudiante } from '../api/api'; // Importamos la función de api.js
+import { buscarEstudiante } from '../api/api';
 import { useNavigate, Link } from 'react-router-dom'; // Importamos Link
 
 
 const Registro = () => {
-    const [form, setForm] = useState({ nombre: '', carnet: '', documentoIdentidad: '' });
-    const [mensaje, setMensaje] = useState('');
+    const [documento, setDocumento] = useState('');
+    const [estudiante, setEstudiante] = useState(null);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleBuscar = async () => {
         try {
-            const res = await registrarEstudiante(form);
-            // Guardamos el ID que nos dio el backend para la siguiente pantalla
-            localStorage.setItem('estudianteId', res.data.id);
-            localStorage.setItem('estudiante_nombre', res.data.nombre);
-            localStorage.setItem('estudiante_carnet', res.data.carnet);
-            navigate('/home'); // O la ruta donde tengas tus candidatos
+            setError('');
+            const res = await buscarEstudiante(documento);
+            setEstudiante(res.data);
         } catch (err) {
-            // Si el backend responde 409 Conflict por carnet duplicado
-            setMensaje(err.response?.data || "Error en el registro");
+            setError(err.response?.data || "Estudiante no encontrado");
+            setEstudiante(null);
         }
+    };
+    const handleEntrarAVotar = () => {
+        // Guardamos los datos en el storage para el Home
+        localStorage.setItem('estudianteId', estudiante.id);
+        localStorage.setItem('estudiante_nombre', estudiante.nombre);
+        navigate('/home');
     };
 
     return (
-<div style={{ padding: '20px', maxWidth: '400px', margin: 'auto', textAlign: 'center' }}>
-            <h2>Registro de Estudiante</h2>
-            <form onSubmit={handleSubmit}>
-                <input name="nombre" placeholder="Nombre completo" onChange={e => setForm({...form, nombre: e.target.value})} required style={inputStyle} />
-                <input name="carnet" placeholder="Carnet Universitario" onChange={e => setForm({...form, carnet: e.target.value})} required style={inputStyle} />
-                <input name="documentoIdentidad" placeholder="Documento Identidad" onChange={e => setForm({...form, documentoIdentidad: e.target.value})} required style={inputStyle} />
-                <button type="submit" style={buttonStyle}>Entrar a Votar</button>
-            </form>
-            {mensaje && <p style={{ color: 'red' }}>{mensaje}</p>}
+        <div style={containerStyle}>
+            <h1>🗳️ Validación de Votante</h1>
+            
+            {!estudiante ? (
+                <div style={cardStyle}>
+                    <p>Ingresa tu Documento de Identidad:</p>
+                    <input 
+                        type="text" 
+                        value={documento} 
+                        onChange={(e) => setDocumento(e.target.value)}
+                        placeholder="Ej: 12345678"
+                        style={inputStyle}
+                    />
+                    <button onClick={handleBuscar} style={btnStyle}>Verificar Datos</button>
+                    {error && <p style={{color: 'red'}}>{error}</p>}
+                </div>
+            ) : (
+                <div style={cardStyle}>
+                    <h3>¡Bienvenido/a, {estudiante.nombre}!</h3>
+                    <div style={facultadHighlight}>
+                        Facultad: <strong>{estudiante.facultad}</strong>
+                    </div>
+                    <p>Verifica que tus datos sean correctos para continuar.</p>
+                    <button onClick={handleEntrarAVotar} style={btnSuccess}>Confirmar e Ir a Votar</button>
+                    <button onClick={() => setEstudiante(null)} style={btnLink}>No soy yo</button>
+                </div>
+            )}
 
             {/* --- ENLACE A RESULTADOS --- */}
             <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
@@ -40,11 +61,25 @@ const Registro = () => {
                     📊 Ver resultados (Solo Administrador)
                 </Link>
             </div>
+            
         </div>
     );
 };
 
+const facultadHighlight = {
+    backgroundColor: '#dbeafe', 
+    color: '#1e40af', 
+    padding: '15px', 
+    borderRadius: '8px', 
+    fontSize: '1.2rem', 
+    margin: '15px 0',
+    border: '2px solid #1e40af'
+};
+const containerStyle = { padding: '50px', textAlign: 'center', fontFamily: 'sans-serif' };
+const cardStyle = { maxWidth: '400px', margin: 'auto', padding: '30px', border: '1px solid #ddd', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' };
 const inputStyle = { display: 'block', width: '100%', marginBottom: '10px', padding: '8px' };
-const buttonStyle = { width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' };
+const btnStyle = { width: '100%', padding: '10px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' };
+const btnSuccess = { ...btnStyle, backgroundColor: '#059669' };
+const btnLink = { background: 'none', border: 'none', color: '#666', marginTop: '10px', cursor: 'pointer', textDecoration: 'underline' };
 
 export default Registro;

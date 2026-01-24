@@ -10,7 +10,7 @@ const LoginAdmin = () => {
     const handleLogin = (e) => {
         e.preventDefault();
         if (loginAdmin(user, pass)) {
-            navigate('/resultados');
+            navigate('/admin-config');
         } else {
             alert("Credenciales incorrectas");
         }

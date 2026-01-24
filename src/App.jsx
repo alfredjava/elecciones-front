@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import LoginAdmin from './pages/LoginAdmin';
 import Resultados from './pages/Resultados';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminPanel from "./pages/AdminPanel";
 
 function App() {
   return (
@@ -26,6 +27,14 @@ function App() {
 
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/registro" />} />
+        <Route 
+            path="/admin-config" 
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            } 
+        />
       </Routes>
     </BrowserRouter>
   );

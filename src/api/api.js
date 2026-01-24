@@ -14,6 +14,8 @@ export const api = axios.create({
 // Funciones para consumir los endpoints
 export const getCandidatos = () => api.get('/candidatos');
 export const getResultados = () => api.get('/candidatos/resultados');
+export const getEstudiantes = () => api.get('/estudiantes');
+export const buscarEstudiante = (documento) => api.get(`/estudiantes/buscar/${documento}`);
 
 // --- NUEVAS FUNCIONES ---
 export const registrarEstudiante = (datos) => api.post('/estudiantes', datos);
@@ -26,4 +28,16 @@ export const loginAdmin = (user, pass) => {
         return true;
     }
     return false;
+};
+
+export const importarCandidatos = (formData) => {
+    return api.post('/candidatos/importar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+export const importarEstudiantes = (formData) => {
+    return api.post('/estudiantes/importar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
 };
